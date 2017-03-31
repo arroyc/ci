@@ -1,6 +1,10 @@
 node('spin-k8s-test') {
     try {
         properties([
+            parameters([
+                string(defaultValue: 'spinnaker-vm-to-kubernetes', description: 'Template name', name: 'template_name'),
+                booleanParam(defaultValue: true, description: 'If the Spinnaker kubernetes test should be run.', name: 'kubernetes')
+            ]),
             pipelineTriggers([cron('@daily')])
         ])
 
@@ -28,7 +32,7 @@ node('spin-k8s-test') {
             def script_path = 'devopsci/scripts/deploy-spinnaker-k8s.sh'
             sh 'sudo chmod +x ' + script_path
             withCredentials([usernamePassword(credentialsId: 'AzDevOpsTestingSP', passwordVariable: 'app_key', usernameVariable: 'app_id')]) {
-                sh script_path + ' -sn ' + scenario_name + ' -ai ' + env.app_id + ' -ak ' + env.app_key
+                sh script_path + ' -tn ' + params.template_name + ' -sn ' + scenario_name + ' -ai ' + env.app_id + ' -ak ' + env.app_key + ' -k ' + params.kubernetes.toString()
             }
         }
 
